@@ -18,7 +18,7 @@ printf '\nHere is the list of downloaded torrents.\n'
 
 # List files currently on torrent server
 let count=1
-fileArray=()
+fileArray=();
 for f in "$torrentDirectory"*
 do
     printf "\n["$count"] $(basename "$f")"
