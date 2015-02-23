@@ -54,17 +54,26 @@ copyMovie() {
 
 	printf "\n***Copying files over. Please do not close the connection until this has finished.***\n\n"
 
-	SAVEIFS=$IFS
-	IFS=$(echo -en "\n\b")
-	files=("$filePath"/*)
-	for f in ${files[*]} # For every mkv/mp4 in the directory
-	do
-		# Check if the file is greater than 75MB. Copy if it isn't.
-	    if [[ $(find $f -type f -size +75000000c 2>/dev/null) ]]; then
-	    	rsync -rvh --progress $f "$commonDirectory$destinationDirectory";
-		fi
-	done
-	IFS=$SAVEIFS
+	if [[ -d $filePath ]]; then
+    	SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		files=("$filePath"/*)
+		for f in ${files[*]} # For every mkv/mp4 in the directory
+		do
+			# Check if the file is greater than 75MB. Copy if it isn't.
+		    if [[ $(find $f -type f -size +75000000c 2>/dev/null) ]]; then
+		    	rsync -rvh --progress $f "$commonDirectory$destinationDirectory"
+			fi
+		done
+		IFS=$SAVEIFS
+	elif [[ -f $filePath ]]; then
+    	rsync -rvh --progress "$filePath" "$commonDirectory$destinationDirectory"
+	else
+    	echo
+    	exit 1
+	fi
+
+
 }
 
 copyTv() {
@@ -91,18 +100,25 @@ copyTv() {
 
     printf "\n***Copying files over. Please do not close the connection until this has finished.***\n\n"
 
-    files=("$filePath"/*)
-    SAVEIFS=$IFS
-	IFS=$(echo -en "\n\b")
-    for f in ${files[*]} # For every mkv/mp4 in the directory
-    do
-        # Check if the file is greater than 75MB. Copy if it isn't.
-        if [[ $(find $f -type f -size +75000000c 2>/dev/null) ]]; then
-            # echo "Found suitable tv show >75MB, file is $f"
-            rsync -rvh --progress "$f" "$commonDirectory$destinationDirectory$showName/$seasonNum/";
-        fi
-    done
-    IFS=$SAVEIFS
+    if [[ -d $filePath ]]; then
+	    files=("$filePath"/*)
+	    SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+	    for f in ${files[*]} # For every mkv/mp4 in the directory
+	    do
+	        # Check if the file is greater than 75MB. Copy if it isn't.
+	        if [[ $(find $f -type f -size +75000000c 2>/dev/null) ]]; then
+	            # echo "Found suitable tv show >75MB, file is $f"
+	            rsync -rvh --progress "$f" "$commonDirectory$destinationDirectory$showName/$seasonNum/";
+	        fi
+	    done
+	    IFS=$SAVEIFS
+	elif [[ -f $filePath ]]; then
+	    rsync -rvh --progress "$filePath" "$commonDirectory$destinationDirectory$showName/$seasonNum/";
+	else
+    	echo "$filePath is not valid"
+    	exit 1
+	fi
 }
 
 # Does not support extracting music files from an archive yet.
@@ -125,18 +141,27 @@ copyMusic() {
 
     printf "\n***Copying files over. Please do not close the connection until this has finished.***\n\n"
 
-	SAVEIFS=$IFS
-	IFS=$(echo -en "\n\b")
-	files=("$filePath"/*)
-    for f in ${files[*]} # For every mkv/mp4 in the directory
-    do
-        # Check if the file is greater than 75MB. Copy if it isn't.
-        if [[ $(find $f -type f -size +1000000c 2>/dev/null) ]]; then
-            # echo "Found suitable tv show >75MB, file is $f"
-            rsync -rvh --progress "$f" "$commonDirectory$destinationDirectory$artistName/$albumName/";
-        fi
-    done
-    IFS=$SAVEIFS
+    if [[ -d $filePath ]]; then
+	    SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		files=("$filePath"/*)
+	    for f in ${files[*]} # For every mkv/mp4 in the directory
+	    do
+	        # Check if the file is greater than 75MB. Copy if it isn't.
+	        if [[ $(find $f -type f -size +1000000c 2>/dev/null) ]]; then
+	            # echo "Found suitable tv show >75MB, file is $f"
+	            rsync -rvh --progress "$f" "$commonDirectory$destinationDirectory$artistName/$albumName/";
+	        fi
+	    done
+	    IFS=$SAVEIFS
+	elif [[ -f $filePath ]]; then
+	    rsync -rvh --progress "$filePath" "$commonDirectory$destinationDirectory$artistName/$albumName/";
+	else
+	    echo "$filePath is not valid"
+	    exit 1
+	fi
+
+
 }
 
 copyGame () {
@@ -162,13 +187,20 @@ copyBook () {
 
 	printf "\n***Copying files over. Please do not close the connection until this has finished.***\n\n"
 
-	for f in "$filePath/*.epub" # For every epub in the directory
-	do
-	    if [[ ! "$f" == *"sample"* ]]; then # Check if the file string contains "sample". Copy if it doesn't.
-			printf "\nFound media without \"sample\"\n> ";
-			rsync -rvh --progress $f "$commonDirectory$destinationDirectory$authorName/$bookName/"
-		fi
-	done
+	if [[ -d $filePath ]]; then
+	    for f in "$filePath/*.epub" # For every epub in the directory
+		do
+		    if [[ ! "$f" == *"sample"* ]]; then # Check if the file string contains "sample". Copy if it doesn't.
+				printf "\nFound media without \"sample\"\n> ";
+				rsync -rvh --progress "$f" "$commonDirectory$destinationDirectory$authorName/$bookName/"
+			fi
+		done
+	elif [[ -f $filePath ]]; then
+	    rsync -rvh --progress "$filePath" "$commonDirectory$destinationDirectory$authorName/$bookName/"
+	else
+	    echo "$filePath is not valid"
+	    exit 1
+	fi
 }
 
 copyOther () {
@@ -176,7 +208,7 @@ copyOther () {
 
 	printf "\n***Copying files over. Please do not close the connection until this has finished.***\n\n"
 
-	rsync -rvh --progress $f "$commonDirectory$destinationDirectory$authorName/$bookName/"
+	rsync -rvh --progress $filePath "$commonDirectory$destinationDirectory$authorName/$bookName/"
 
 }
 
